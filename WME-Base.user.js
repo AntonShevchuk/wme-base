@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Base
 // @namespace    https://greasyfork.org/users/227648-anton-shevchuk
-// @version      0.0.2
+// @version      0.0.3
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @match        https://www.waze.com/editor*
