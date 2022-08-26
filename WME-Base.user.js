@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Base
 // @namespace    https://greasyfork.org/users/227648-anton-shevchuk
-// @version      0.0.1
+// @version      0.0.2
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @match        https://www.waze.com/editor*
@@ -21,22 +21,14 @@
 class WMEBase {
   constructor () {
     jQuery(document)
-      .on('boostrap.wme', this.onBoostrap)
-      .on('segment.wme', this.onSegment)
-      .on('segments.wme', this.onSegments)
-      .on('node.wme',this.onNode)
-      .on('nodes.wme', this.onNodes)
-      .on('venue.wme', this.onVenue)
-      .on('venues.wme', this.onVenues)
-      .on('point.wme', this.onPoint)
-      .on('residential.wme', this.onResidential)
-  }
-
-  /**
-   * Handler for `boostrap.wme` event
-   * @return {Null}
-   */
-  onBoostrap() {
+      .on('segment.wme', (e, el, t) => this.onSegment(e, el, t))
+      .on('segments.wme', (e, el, t) => this.onSegments(e, el, t))
+      .on('node.wme',(e, el, t) => this.onNode(e, el, t))
+      .on('nodes.wme', (e, el, t) => this.onNodes(e, el, t))
+      .on('venue.wme', (e, el, t) => this.onVenue(e, el, t))
+      .on('venues.wme', (e, el, t) => this.onVenues(e, el, t))
+      .on('point.wme', (e, el, t) => this.onPoint(e, el, t))
+      .on('residential.wme', (e, el, t) => this.onResidential(e, el, t))
   }
 
   /**
