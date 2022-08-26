@@ -19,7 +19,8 @@
 /* global jQuery, W */
 
 class WMEBase {
-  constructor () {
+  constructor (name) {
+    this.name = name
     jQuery(document)
       .on('segment.wme', (e, el, t) => this.onSegment(e, el, t))
       .on('segments.wme', (e, el, t) => this.onSegments(e, el, t))
@@ -29,6 +30,18 @@ class WMEBase {
       .on('venues.wme', (e, el, t) => this.onVenues(e, el, t))
       .on('point.wme', (e, el, t) => this.onPoint(e, el, t))
       .on('residential.wme', (e, el, t) => this.onResidential(e, el, t))
+  }
+
+  /**
+   * Log message with prefix
+   * @param message
+   */
+  log (message) {
+    console.log(
+      '%c' + this.name + ':%c ' + message,
+      'color: #0DAD8D; font-weight: bold',
+      'color: dimgray; font-weight: normal'
+    )
   }
 
   /**
