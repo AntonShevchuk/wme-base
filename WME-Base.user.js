@@ -12,6 +12,8 @@
 // @exclude      https://beta.waze.com/user/editor*
 // @icon         https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://anton.shevchuk.name&size=64
 // @grant        none
+// @supportURL   https://github.com/AntonShevchuk/wme-base/issues
+// @contributionURL https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=antonshevchuk@gmail.com&item_name=Greasy+Fork+donation
 // ==/UserScript==
 
 /* jshint esversion: 8 */
@@ -125,6 +127,7 @@ class WMEBase {
   constructor (name) {
     this.name = name
     jQuery(document)
+      .on('none.wme', (e) => this.onNone(e))
       .on('segment.wme', (e, el, t) => this.onSegment(e, el, t))
       .on('segments.wme', (e, el, t) => this.onSegments(e, el, t))
       .on('node.wme', (e, el, t) => this.onNode(e, el, t))
@@ -146,6 +149,14 @@ class WMEBase {
       'color: #0DAD8D; font-weight: bold',
       'color: dimgray; font-weight: normal'
     )
+  }
+
+  /**
+   * Handler for `none.wme` event
+   * @param {jQuery.Event} event
+   * @return {Null}
+   */
+  onNone (event) {
   }
 
   /**
