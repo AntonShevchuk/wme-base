@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Base
 // @namespace    https://greasyfork.org/users/227648-anton-shevchuk
-// @version      0.0.3
+// @version      0.0.4
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @match        https://www.waze.com/editor*
@@ -14,9 +14,112 @@
 // @grant        none
 // ==/UserScript==
 
-/* jshint esversion: 6 */
+/* jshint esversion: 8 */
 
 /* global jQuery, W */
+
+class WME {
+  /**
+   * Get all available POI except selected categories
+   * @param {Array} except
+   * @return {Array}
+   */
+  static getVenues (except = []) {
+    let selected = W.model.venues.getObjectArray()
+    selected = selected.filter((el) => el.isGeometryEditable())
+    // filter by main category
+    if (except.length) {
+      selected = selected.filter(model => except.indexOf(model.getMainCategory()) === -1)
+    }
+    return selected
+  }
+
+  /**
+   * Get all available segments except selected road types
+   * @param {Array} except
+   * @return {Array}
+   */
+  static getSegments (except = []) {
+    let selected = W.model.segments.getObjectArray()
+    selected = selected.filter((el) => el.isGeometryEditable())
+    // filter by road type
+    if (except.length) {
+      selected = selected.filter(segment => except.indexOf(segment.getRoadType()) === -1)
+    }
+    return selected
+  }
+
+  /**
+   * Get selected features which you can(!) edit
+   * @returns {Array}
+   */
+  static getSelected () {
+    if (!W.selectionManager.hasSelectedFeatures()) {
+      return []
+    }
+    let selected
+    selected = W.selectionManager.getSelectedFeatures().map((x) => x.model)
+    selected = selected.filter((el) => el.isGeometryEditable())
+    return selected
+  }
+
+  /**
+   * Get selected Area POI(s)
+   * @return {Array}
+   */
+  static getSelectedVenues () {
+    return WME.getSelected().filter((el) => el.type === 'venue')
+  }
+
+  /**
+   * Get selected Area POI
+   * @return {Object|null}
+   */
+  static getSelectedVenue () {
+    if (WME.getSelectedVenues().length) {
+      return WME.getSelectedVenues()[0]
+    }
+    return null
+  }
+
+  /**
+   * Get selected Segments
+   * @return {Array}
+   */
+  static getSelectedSegments () {
+    return WME.getSelected().filter((el) => el.type === 'segment')
+  }
+
+  /**
+   * Get selected Segment
+   * @return {Object|null}
+   */
+  static getSelectedSegment () {
+    if (WME.getSelectedSegments().length) {
+      return WME.getSelectedSegments()[0]
+    }
+    return null
+  }
+
+  /**
+   * Get selected Nodes
+   * @return {Object}
+   */
+  static getSelectedNodes () {
+    return WME.getSelected().filter((el) => el.type === 'node')
+  }
+
+  /**
+   * Get selected Node
+   * @return {Object|null}
+   */
+  static getSelectedNode () {
+    if (WME.getSelectedNodes().length) {
+      return WME.getSelectedNodes()[0]
+    }
+    return null
+  }
+}
 
 class WMEBase {
   constructor (name) {
@@ -24,11 +127,12 @@ class WMEBase {
     jQuery(document)
       .on('segment.wme', (e, el, t) => this.onSegment(e, el, t))
       .on('segments.wme', (e, el, t) => this.onSegments(e, el, t))
-      .on('node.wme',(e, el, t) => this.onNode(e, el, t))
+      .on('node.wme', (e, el, t) => this.onNode(e, el, t))
       .on('nodes.wme', (e, el, t) => this.onNodes(e, el, t))
       .on('venue.wme', (e, el, t) => this.onVenue(e, el, t))
       .on('venues.wme', (e, el, t) => this.onVenues(e, el, t))
       .on('point.wme', (e, el, t) => this.onPoint(e, el, t))
+      .on('place.wme', (e, el, t) => this.onPlace(e, el, t))
       .on('residential.wme', (e, el, t) => this.onResidential(e, el, t))
   }
 
@@ -51,7 +155,7 @@ class WMEBase {
    * @param {W.model} model
    * @return {Null}
    */
-  onSegment(event, element, model) {
+  onSegment (event, element, model) {
   }
 
   /**
@@ -61,7 +165,7 @@ class WMEBase {
    * @param {Array} models
    * @return {Null}
    */
-  onSegments(event, element, models) {
+  onSegments (event, element, models) {
   }
 
   /**
@@ -71,7 +175,7 @@ class WMEBase {
    * @param {W.model} model
    * @return {Null}
    */
-  onNode(event, element, model) {
+  onNode (event, element, model) {
   }
 
   /**
@@ -81,7 +185,7 @@ class WMEBase {
    * @param {Array} models
    * @return {Null}
    */
-  onNodes(event, element, models) {
+  onNodes (event, element, models) {
   }
 
   /**
@@ -91,7 +195,7 @@ class WMEBase {
    * @param {W.model} model
    * @return {Null}
    */
-  onVenue(event, element, model) {
+  onVenue (event, element, model) {
   }
 
   /**
@@ -101,7 +205,7 @@ class WMEBase {
    * @param {Array} models
    * @return {Null}
    */
-  onVenues(event, element, models) {
+  onVenues (event, element, models) {
   }
 
   /**
@@ -111,7 +215,17 @@ class WMEBase {
    * @param {W.model} model
    * @return {Null}
    */
-  onPoint(event, element, model) {
+  onPoint (event, element, model) {
+  }
+
+  /**
+   * Handler for `place.wme` event
+   * @param {jQuery.Event} event
+   * @param {HTMLElement} element
+   * @param {W.model} model
+   * @return {Null}
+   */
+  onPlace (event, element, model) {
   }
 
   /**
@@ -121,107 +235,6 @@ class WMEBase {
    * @param {W.model} model
    * @return {Null}
    */
-  onResidential(event, element, model) {
-  }
-
-  /**
-   * Get all available POI except selected categories
-   * @param {Array} except
-   * @return {Array}
-   */
-  getVenues (except = []) {
-    let selected = W.model.venues.getObjectArray()
-    selected = selected.filter((el) => el.isGeometryEditable())
-    // filter by main category
-    if (except.length) {
-      selected = selected.filter(model => except.indexOf(model.getMainCategory()) === -1)
-    }
-    return selected
-  }
-
-  /**
-   * Get all available segments except selected road types
-   * @param {Array} except
-   * @return {Array}
-   */
-  getSegments (except = []) {
-    let selected = W.model.segments.getObjectArray()
-    selected = selected.filter((el) => el.isGeometryEditable())
-    // filter by road type
-    if (except.length) {
-      selected = selected.filter(segment => except.indexOf(segment.getRoadType()) === -1)
-    }
-    return selected
-  }
-
-  /**
-   * Get selected features which you can(!) edit
-   * @returns {Array}
-   */
-  getSelected () {
-    if (!W.selectionManager.hasSelectedFeatures()) {
-      return []
-    }
-    let selected
-    selected = W.selectionManager.getSelectedFeatures().map((x) => x.model)
-    selected = selected.filter((el) => el.isGeometryEditable())
-    return selected
-  }
-
-  /**
-   * Get selected Area POI(s)
-   * @return {Array}
-   */
-  getSelectedVenues () {
-    return this.getSelected().filter((el) => el.type === 'venue')
-  }
-
-  /**
-   * Get selected Area POI
-   * @return {Object|null}
-   */
-  getSelectedVenue () {
-    if (this.getSelectedVenues().length) {
-      return this.getSelectedVenues()[0]
-    }
-    return null
-  }
-
-  /**
-   * Get selected Segments
-   * @return {Array}
-   */
-  getSelectedSegments () {
-    return this.getSelected().filter((el) => el.type === 'segment')
-  }
-
-  /**
-   * Get selected Segment
-   * @return {Object|null}
-   */
-  getSelectedSegment () {
-    if (this.getSelectedSegments().length) {
-      return this.getSelectedSegments()[0]
-    }
-    return null
-  }
-
-  /**
-   * Get selected Nodes
-   * @return {Object}
-   */
-  getSelectedNodes () {
-    return this.getSelected().filter((el) => el.type === 'node')
-  }
-
-  /**
-   * Get selected Node
-   * @return {Object|null}
-   */
-  getSelectedNode () {
-    if (this.getSelectedNodes().length) {
-      return this.getSelectedNodes()[0]
-    }
-    return null
+  onResidential (event, element, model) {
   }
 }
