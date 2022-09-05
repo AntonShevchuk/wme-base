@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.0.4
+// @version      0.0.5
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -137,11 +137,13 @@ class WMEBase {
       .on('point.wme', (e, el, t) => this.onPoint(e, el, t))
       .on('place.wme', (e, el, t) => this.onPlace(e, el, t))
       .on('residential.wme', (e, el, t) => this.onResidential(e, el, t))
+
+    jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e))
   }
 
   /**
    * Log message with prefix
-   * @param message
+   * @param {String} message
    */
   log (message) {
     console.log(
@@ -149,6 +151,14 @@ class WMEBase {
       'color: #0DAD8D; font-weight: bold',
       'color: dimgray; font-weight: normal'
     )
+  }
+
+  /**
+   * Handler for window `beforeunload` event
+   * @param {jQuery.Event} event
+   * @return {Null}
+   */
+  onBeforeUnload (event) {
   }
 
   /**
@@ -220,16 +230,6 @@ class WMEBase {
   }
 
   /**
-   * Handler for `point.wme` event
-   * @param {jQuery.Event} event
-   * @param {HTMLElement} element
-   * @param {W.model} model
-   * @return {void}
-   */
-  onPoint (event, element, model) {
-  }
-
-  /**
    * Handler for `place.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
@@ -237,6 +237,16 @@ class WMEBase {
    * @return {void}
    */
   onPlace (event, element, model) {
+  }
+
+  /**
+   * Handler for `point.wme` event
+   * @param {jQuery.Event} event
+   * @param {HTMLElement} element
+   * @param {W.model} model
+   * @return {void}
+   */
+  onPoint (event, element, model) {
   }
 
   /**
