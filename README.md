@@ -31,9 +31,10 @@ class MySuperScript extends WMEBase {
   /**
    * Example of the constructor
    * @param {String} name
+   * @param {Settings} settings
    */
-  constructor (name) {
-    super(name)
+  constructor (name, settings = null) {
+    super(name, settings)
   }
 
   /**
@@ -150,7 +151,10 @@ class MySuperScript extends WMEBase {
    * @return {Null}
    */
   onBeforeUnload (event) {
-    this.log('Can be use for save settings')
+    this.log('Can be use for save or check settings')
+    if (this.settings) {
+      this.settings.save()
+    }
   }
 }
 ```
