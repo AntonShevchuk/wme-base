@@ -21,11 +21,18 @@ class WMEBase {
   /**
    *
    * @param {String} name
-   * @param {Settings} settings
+   * @param {Object} settings
    */
   constructor (name, settings = null) {
     this.name = name
-    this.settings = settings
+
+    if (settings && settings instanceof Settings) {
+      this.settings = settings
+    } else if (settings) {
+      this.settings = new Settings(name, settings)
+    } else {
+      this.settings = null
+    }
 
     jQuery(document)
       .on('none.wme', (e) => this.onNone(e))
