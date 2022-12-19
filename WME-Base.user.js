@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.1.0
+// @version      0.1.1
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -18,8 +18,15 @@
 /* global jQuery, W */
 
 class WMEBase {
-  constructor (name) {
+  /**
+   *
+   * @param {String} name
+   * @param {Settings} settings
+   */
+  constructor (name, settings = null) {
     this.name = name
+    this.settings = settings
+
     jQuery(document)
       .on('none.wme', (e) => this.onNone(e))
       .on('segment.wme', (e, el, t) => this.onSegment(e, el, t))
@@ -53,6 +60,9 @@ class WMEBase {
    * @return {Null}
    */
   onBeforeUnload (event) {
+    if (this.settings) {
+      this.settings.save()
+    }
   }
 
   /**
