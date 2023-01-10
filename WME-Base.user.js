@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.1.1
+// @version      0.1.2
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -56,10 +56,29 @@ class WMEBase {
    */
   log (message) {
     console.log(
-      '%c' + this.name + ':%c ' + message,
+      '%c' + this.name + ': %c' + message,
       'color: #0DAD8D; font-weight: bold',
       'color: dimgray; font-weight: normal'
     )
+  }
+
+  /**
+   * Collapsed group message with prefix
+   * @param {String} message
+   */
+  group (message) {
+    console.groupCollapsed(
+      '%c' + this.name + ': %c' + message,
+      'color: #0DAD8D; font-weight: bold',
+      'color: dimgray; font-weight: normal'
+    )
+  }
+
+  /**
+   * Just wrapper for console.groupEnd()
+   */
+  groupEnd() {
+    console.groupEnd()
   }
 
   /**
