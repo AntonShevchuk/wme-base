@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.1.3
+// @version      0.2.0
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -15,8 +15,9 @@
 
 /* jshint esversion: 8 */
 
-/* global jQuery, W */
+/* global jQuery */
 /* global Settings */
+/* global sdk, sdk.Node, sdk.Segment, sdk.Venue */
 
 class WMEBase {
   /**
@@ -26,6 +27,13 @@ class WMEBase {
    */
   constructor (name, settings = null) {
     this.name = name
+
+    this.wmeSDK = getWmeSdk(
+      {
+        scriptId: name.toLowerCase().replace(' ', '-'),
+        scriptName: name
+      }
+    )
 
     if (settings && settings instanceof Settings) {
       this.settings = settings
@@ -108,7 +116,7 @@ class WMEBase {
    * Handler for `segment.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {sdk.Segment} model
    * @return {void}
    */
   onSegment (event, element, model) {
@@ -118,7 +126,7 @@ class WMEBase {
    * Handler for `segments.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array} models
+   * @param {Array<sdk.Segment>} models
    * @return {void}
    */
   onSegments (event, element, models) {
@@ -128,7 +136,7 @@ class WMEBase {
    * Handler for `node.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {sdk.Node} model
    * @return {void}
    */
   onNode (event, element, model) {
@@ -138,7 +146,7 @@ class WMEBase {
    * Handler for `nodes.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array} models
+   * @param {Array<sdk.Node>} models
    * @return {void}
    */
   onNodes (event, element, models) {
@@ -148,7 +156,7 @@ class WMEBase {
    * Handler for `venue.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {sdk.Venue} model
    * @return {void}
    */
   onVenue (event, element, model) {
@@ -158,7 +166,7 @@ class WMEBase {
    * Handler for `venues.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array} models
+   * @param {Array<sdk.Venue>} models
    * @return {void}
    */
   onVenues (event, element, models) {
@@ -168,7 +176,7 @@ class WMEBase {
    * Handler for `place.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {sdk.Venue} model
    * @return {void}
    */
   onPlace (event, element, model) {
@@ -178,7 +186,7 @@ class WMEBase {
    * Handler for `point.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {sdk.Venue} model
    * @return {void}
    */
   onPoint (event, element, model) {
@@ -188,7 +196,7 @@ class WMEBase {
    * Handler for `residential.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {sdk.Venue} model
    * @return {void}
    */
   onResidential (event, element, model) {
