@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.2.1
+// @version      0.2.2
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -258,7 +258,7 @@ class WMEBase {
     if (selection.objectType !== 'segment') {
       return []
     }
-    return selection.ids.map((id) => this.wmeSDK.DataModel.Segments.getById( { venueId: id } ))
+    return selection.ids.map((id) => this.wmeSDK.DataModel.Segments.getById( { segmentId: id } ))
   }
 
   /**
@@ -278,6 +278,6 @@ class WMEBase {
     if (selection.objectType !== 'node') {
       return []
     }
-    return selection.ids.map((id) => this.wmeSDK.DataModel.Nodes.getById( { venueId: id } ))
+    return selection.ids.map((id) => this.wmeSDK.DataModel.Nodes.getById( { nodeId: id } ))
   }
 }
