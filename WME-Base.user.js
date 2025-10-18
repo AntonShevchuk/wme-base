@@ -201,4 +201,80 @@ class WMEBase {
    */
   onResidential (event, element, model) {
   }
+
+  /**
+   * Get all available POI except selected categories
+   * @param {Array} except
+   * @return {Array}
+   */
+  getVenues (except = []) {
+    let selected = this.wmeSDK.DataModel.Venues.getAll()
+    // filter by lock rank
+    selected = selected.filter(x => x.lockRank <= this.wmeSDK.State.getUserInfo().rank)
+    // filter by main category
+    if (except.length) {
+      selected = selected.filter(venue => except.indexOf(venue.categories[0]) === -1)
+    }
+    return selected
+  }
+
+  /**
+   * Get selected Area POI(s)
+   * @return {Array}
+   */
+  getSelectedVenues () {
+    let selection = this.wmeSDK.Editing.getSelection()
+    if (selection.objectType !== 'venue') {
+      return []
+    }
+    return selection.ids.map((id) => this.wmeSDK.DataModel.Venues.getById( { venueId: id } ))
+  }
+
+  /**
+   * Get all available segments except selected road types
+   * @param {Array} except
+   * @return {Array}
+   */
+  getSegments (except = []) {
+    let selected = this.wmeSDK.DataModel.Segments.getAll()
+    // filter by lock rank
+    selected = selected.filter(x => x.lockRank <= this.wmeSDK.State.getUserInfo().rank)
+    // filter by road type
+    if (except.length) {
+      selected = selected.filter(segment => except.indexOf(segment.roadType) === -1)
+    }
+    return selected
+  }
+
+  /**
+   * Get selected Segments
+   * @return {Array}
+   */
+  getSelectedSegments () {
+    let selection = this.wmeSDK.Editing.getSelection()
+    if (selection.objectType !== 'segment') {
+      return []
+    }
+    return selection.ids.map((id) => this.wmeSDK.DataModel.Segments.getById( { venueId: id } ))
+  }
+
+  /**
+   * Get all available nodes
+   * @return {Array}
+   */
+  getNodes (except = []) {
+    return this.wmeSDK.DataModel.Nodes.getAll()
+  }
+
+  /**
+   * Get selected Nodes
+   * @return {Array}
+   */
+  getSelectedNodes () {
+    let selection = this.wmeSDK.Editing.getSelection()
+    if (selection.objectType !== 'node') {
+      return []
+    }
+    return selection.ids.map((id) => this.wmeSDK.DataModel.Nodes.getById( { venueId: id } ))
+  }
 }
