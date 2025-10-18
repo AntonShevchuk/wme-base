@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.2.0
+// @version      0.2.1
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -26,12 +26,13 @@ class WMEBase {
    * @param {Object} settings
    */
   constructor (name, settings = null) {
+    this.id = name.toLowerCase().replace(' ', '-')
     this.name = name
 
     this.wmeSDK = getWmeSdk(
       {
-        scriptId: name.toLowerCase().replace(' ', '-'),
-        scriptName: name
+        scriptId: this.id,
+        scriptName: this.name
       }
     )
 
@@ -57,6 +58,8 @@ class WMEBase {
 
     jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e))
   }
+
+
 
   /**
    * Log message with prefix
