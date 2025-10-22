@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.2.2
+// @version      0.3.0
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -14,10 +14,10 @@
 // ==/UserScript==
 
 /* jshint esversion: 8 */
-
 /* global jQuery */
 /* global Settings */
-/* global sdk, sdk.Node, sdk.Segment, sdk.Venue */
+
+// import type { Node, Segment, Venue, WmeSDK } from "wme-sdk-typings";
 
 class WMEBase {
   /**
@@ -29,6 +29,7 @@ class WMEBase {
     this.id = name.toLowerCase().replace(' ', '-')
     this.name = name
 
+    /** @type {WmeSDK} */
     this.wmeSDK = getWmeSdk(
       {
         scriptId: this.id,
@@ -119,7 +120,7 @@ class WMEBase {
    * Handler for `segment.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {sdk.Segment} model
+   * @param {Segment} model
    * @return {void}
    */
   onSegment (event, element, model) {
@@ -129,7 +130,7 @@ class WMEBase {
    * Handler for `segments.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array<sdk.Segment>} models
+   * @param {Array<Segment>} models
    * @return {void}
    */
   onSegments (event, element, models) {
@@ -139,7 +140,7 @@ class WMEBase {
    * Handler for `node.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {sdk.Node} model
+   * @param {Node} model
    * @return {void}
    */
   onNode (event, element, model) {
@@ -149,7 +150,7 @@ class WMEBase {
    * Handler for `nodes.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array<sdk.Node>} models
+   * @param {Array<Node>} models
    * @return {void}
    */
   onNodes (event, element, models) {
@@ -159,7 +160,7 @@ class WMEBase {
    * Handler for `venue.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {sdk.Venue} model
+   * @param {Venue} model
    * @return {void}
    */
   onVenue (event, element, model) {
@@ -169,7 +170,7 @@ class WMEBase {
    * Handler for `venues.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array<sdk.Venue>} models
+   * @param {Array<Venue>} models
    * @return {void}
    */
   onVenues (event, element, models) {
@@ -179,7 +180,7 @@ class WMEBase {
    * Handler for `place.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {sdk.Venue} model
+   * @param {Venue} model
    * @return {void}
    */
   onPlace (event, element, model) {
@@ -189,7 +190,7 @@ class WMEBase {
    * Handler for `point.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {sdk.Venue} model
+   * @param {Venue} model
    * @return {void}
    */
   onPoint (event, element, model) {
@@ -199,7 +200,7 @@ class WMEBase {
    * Handler for `residential.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {sdk.Venue} model
+   * @param {Venue} model
    * @return {void}
    */
   onResidential (event, element, model) {
@@ -210,7 +211,7 @@ class WMEBase {
    * @param {Array} except
    * @return {Array}
    */
-  getVenues (except = []) {
+  getAllVenues (except = []) {
     let selected = this.wmeSDK.DataModel.Venues.getAll()
     // filter by lock rank
     selected = selected.filter(x => x.lockRank <= this.wmeSDK.State.getUserInfo().rank)
@@ -227,7 +228,7 @@ class WMEBase {
    */
   getSelectedVenues () {
     let selection = this.wmeSDK.Editing.getSelection()
-    if (selection.objectType !== 'venue') {
+    if (!selection || selection.objectType !== 'venue') {
       return []
     }
     return selection.ids.map((id) => this.wmeSDK.DataModel.Venues.getById( { venueId: id } ))
@@ -238,7 +239,7 @@ class WMEBase {
    * @param {Array} except
    * @return {Array}
    */
-  getSegments (except = []) {
+  getAllSegments (except = []) {
     let selected = this.wmeSDK.DataModel.Segments.getAll()
     // filter by lock rank
     selected = selected.filter(x => x.lockRank <= this.wmeSDK.State.getUserInfo().rank)
@@ -255,7 +256,7 @@ class WMEBase {
    */
   getSelectedSegments () {
     let selection = this.wmeSDK.Editing.getSelection()
-    if (selection.objectType !== 'segment') {
+    if (!selection || selection.objectType !== 'segment') {
       return []
     }
     return selection.ids.map((id) => this.wmeSDK.DataModel.Segments.getById( { segmentId: id } ))
@@ -265,7 +266,7 @@ class WMEBase {
    * Get all available nodes
    * @return {Array}
    */
-  getNodes (except = []) {
+  getAllNodes (except = []) {
     return this.wmeSDK.DataModel.Nodes.getAll()
   }
 
@@ -275,7 +276,7 @@ class WMEBase {
    */
   getSelectedNodes () {
     let selection = this.wmeSDK.Editing.getSelection()
-    if (selection.objectType !== 'node') {
+    if (!selection || selection.objectType !== 'node') {
       return []
     }
     return selection.ids.map((id) => this.wmeSDK.DataModel.Nodes.getById( { nodeId: id } ))
