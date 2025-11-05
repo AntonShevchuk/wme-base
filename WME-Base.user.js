@@ -60,8 +60,6 @@ class WMEBase {
     jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e))
   }
 
-
-
   /**
    * Log message with prefix
    * @param {String} message
