@@ -11,18 +11,34 @@ WME Base class is parent class for your scripts, it works with events from the W
 
 ## Methods
 
-* `log(message)` – `console.log` wrapper
-* `onBeforeUnload (event)` - handler for `window` `beforeunload` event
-* `onNone (event)` – handler for `none.wme` event
-* `onSegment (event, element, model)` – handler for `segment.wme` event
-* `onSegments (event, element, models)` – handler for `segments.wme` event
-* `onNode (event, element, model)` – handler for `node.wme` event
-* `onNodes (event, element, models)` – handler for `nodes.wme` event
-* `onVenue (event, element, model)` – handler for `venue.wme` event
-* `onVenues (event, element, models)` – handler for `venues.wme` event
-* `onPoint (event, element, model)` – handler for `point.wme` event
-* `onPlace (event, element, model)` – handler for `place.wme` event
-* `onResidential (event, element, model)` – handler for `residential.wme` event
+
+| Method                                   | Description                                                                      | Returns                |
+| ---------------------------------------- | -------------------------------------------------------------------------------- | ---------------------- |
+| **constructor(name, settings?)**         | Initializes plugin instance, binds WME event listeners, and attaches to WME SDK. | `void`                 |
+| **log(message, ...args)**                | Logs a formatted message with plugin prefix.                                     | `void`                 |
+| **group(message, ...args)**              | Starts a collapsed console log group.                                            | `void`                 |
+| **groupEnd()**                           | Ends the current console group.                                                  | `void`                 |
+| **onBeforeUnload(event)**                | Handles `beforeunload` — saves settings if available.                            | `void`                 |
+| **onNone(event)**                        | Triggered when no object is selected.                                            | `void`                 |
+| **onSegment(event, element, model)**     | Triggered when a single segment is selected.                                     | `void`                 |
+| **onSegments(event, element, models)**   | Triggered when multiple segments are selected.                                   | `void`                 |
+| **onNode(event, element, model)**        | Triggered when a single node is selected.                                        | `void`                 |
+| **onNodes(event, element, models)**      | Triggered when multiple nodes are selected.                                      | `void`                 |
+| **onVenue(event, element, model)**       | Triggered when a single venue (POI) is selected.                                 | `void`                 |
+| **onVenues(event, element, models)**     | Triggered when multiple venues are selected.                                     | `void`                 |
+| **onPlace(event, element, model)**       | Triggered when a place is selected.                                              | `void`                 |
+| **onPoint(event, element, model)**       | Triggered when a point POI is selected.                                          | `void`                 |
+| **onResidential(event, element, model)** | Triggered when a residential POI is selected.                                    | `void`                 |
+| **getAllVenues(except?)**                | Returns all venues excluding specified categories.                               | `Venue[]`              |
+| **getSelectedVenue()**                   | Returns the first selected venue.                                                | `Venue \| null`        |
+| **getSelectedVenues()**                  | Returns all selected venues.                                                     | `Venue[]`              |
+| **getSelectedVenueAddress()**            | Returns the address of the selected venue.                                       | `VenueAddress \| null` |
+| **getAllSegments(except?)**              | Returns all segments excluding specified road types.                             | `Segment[]`            |
+| **getSelectedSegment()**                 | Returns the first selected segment.                                              | `Segment \| null`      |
+| **getSelectedSegments()**                | Returns all selected segments.                                                   | `Segment[]`            |
+| **getAllNodes()**                        | Returns all available nodes.                                                     | `Node[]`               |
+| **getSelectedNode()**                    | Returns the first selected node.                                                 | `Node \| null`         |
+| **getSelectedNodes()**                   | Returns all selected nodes.                                                      | `Node[]`               |
 
 ## Example
 
@@ -50,7 +66,7 @@ class MySuperScript extends WMEBase {
    * Handler for `segment.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {Segment} model
    * @return {void}
    */
   onSegment (event, element, model) {
@@ -61,7 +77,7 @@ class MySuperScript extends WMEBase {
    * Handler for `segments.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array} models
+   * @param {Segment[]} models
    * @return {void}
    */
   onSegments (event, element, models) {
@@ -72,7 +88,7 @@ class MySuperScript extends WMEBase {
    * Handler for `node.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {Node$1} model
    * @return {void}
    */
   onNode (event, element, model) {
@@ -83,7 +99,7 @@ class MySuperScript extends WMEBase {
    * Handler for `nodes.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array} models
+   * @param {Node$1[]} models
    * @return {void}
    */
   onNodes (event, element, models) {
@@ -94,7 +110,7 @@ class MySuperScript extends WMEBase {
    * Handler for `venue.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {Venue} model
    * @return {void}
    */
   onVenue (event, element, model) {
@@ -105,7 +121,7 @@ class MySuperScript extends WMEBase {
    * Handler for `venues.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {Array} models
+   * @param {Venue[]} models
    * @return {void}
    */
   onVenues (event, element, models) {
@@ -116,7 +132,7 @@ class MySuperScript extends WMEBase {
    * Handler for `point.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {Venue} model
    * @return {void}
    */
   onPoint (event, element, model) {
@@ -127,7 +143,7 @@ class MySuperScript extends WMEBase {
    * Handler for `place.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {Venue} model
    * @return {void}
    */
   onPlace (event, element, model) {
@@ -138,7 +154,7 @@ class MySuperScript extends WMEBase {
    * Handler for `residential.wme` event
    * @param {jQuery.Event} event
    * @param {HTMLElement} element
-   * @param {W.model} model
+   * @param {Venue} model
    * @return {void}
    */
   onResidential (event, element, model) {

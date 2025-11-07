@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.3.0
+// @version      0.3.1
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -16,8 +16,7 @@
 /* jshint esversion: 8 */
 /* global jQuery */
 /* global Settings */
-
-// import type { Node, Segment, Venue, WmeSDK } from "wme-sdk-typings";
+/* global Node$1, Segment, Venue, VenueAddress, WmeSDK */
 
 class WMEBase {
   /**
@@ -98,7 +97,7 @@ class WMEBase {
   /**
    * Handler for window `beforeunload` event
    * @param {jQuery.Event} event
-   * @return {Null}
+   * @return {void}
    */
   onBeforeUnload (event) {
     if (this.settings) {
@@ -207,12 +206,13 @@ class WMEBase {
   /**
    * Get all available POI except selected categories
    * @param {Array} except
-   * @return {Array}
+   * @return {Venue[]}
    */
   getAllVenues (except = []) {
     let selected = this.wmeSDK.DataModel.Venues.getAll()
+    let rank = this.wmeSDK.State.getUserInfo().rank
     // filter by lock rank
-    selected = selected.filter(x => x.lockRank <= this.wmeSDK.State.getUserInfo().rank)
+    selected = selected.filter(venue => venue.lockRank <= rank)
     // filter by main category
     if (except.length) {
       selected = selected.filter(venue => except.indexOf(venue.categories[0]) === -1)
@@ -221,8 +221,16 @@ class WMEBase {
   }
 
   /**
+   * Get selected Area POI
+   * @return {Venue}
+   */
+  getSelectedVenue (){
+    return this.getSelectedVenues()?.[0] ?? null;
+  }
+
+  /**
    * Get selected Area POI(s)
-   * @return {Array}
+   * @return {Venue[]}
    */
   getSelectedVenues () {
     let selection = this.wmeSDK.Editing.getSelection()
@@ -233,14 +241,27 @@ class WMEBase {
   }
 
   /**
+   * Get the address of the selected Venue
+   * @return {VenueAddress}
+   */
+  getSelectedVenueAddress () {
+    let venue = this.getSelectedVenue()
+    if (!venue) {
+      return null
+    }
+    return this.wmeSDK.DataModel.Venues.getAddress({ venueId: venue.id })
+  }
+
+  /**
    * Get all available segments except selected road types
    * @param {Array} except
-   * @return {Array}
+   * @return {Segment[]}
    */
   getAllSegments (except = []) {
     let selected = this.wmeSDK.DataModel.Segments.getAll()
+    let rank = this.wmeSDK.State.getUserInfo().rank
     // filter by lock rank
-    selected = selected.filter(x => x.lockRank <= this.wmeSDK.State.getUserInfo().rank)
+    selected = selected.filter(segment => segment.lockRank <= rank)
     // filter by road type
     if (except.length) {
       selected = selected.filter(segment => except.indexOf(segment.roadType) === -1)
@@ -249,8 +270,16 @@ class WMEBase {
   }
 
   /**
+   * Get selected Segment
+   * @return {Segment}
+   */
+  getSelectedSegment () {
+    return this.getSelectedSegments()?.[0] ?? null;
+  }
+
+  /**
    * Get selected Segments
-   * @return {Array}
+   * @return {Segment[]}
    */
   getSelectedSegments () {
     let selection = this.wmeSDK.Editing.getSelection()
@@ -262,7 +291,7 @@ class WMEBase {
 
   /**
    * Get all available nodes
-   * @return {Array}
+   * @return {Node$1[]}
    */
   getAllNodes (except = []) {
     return this.wmeSDK.DataModel.Nodes.getAll()
@@ -270,7 +299,15 @@ class WMEBase {
 
   /**
    * Get selected Nodes
-   * @return {Array}
+   * @return {Node$1}
+   */
+  getSelectedNode () {
+    return this.getSelectedNodes()?.[0] ?? null;
+  }
+
+  /**
+   * Get selected Nodes
+   * @return {Node$1[]}
    */
   getSelectedNodes () {
     let selection = this.wmeSDK.Editing.getSelection()
