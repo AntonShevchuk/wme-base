@@ -179,5 +179,6 @@ class MySuperScript extends WMEBase {
 
 Author homepage: https://anton.shevchuk.name/  
 Author pet projects: https://hohli.com/  
+Support author: https://donate.hohli.com/  
 Script homepage: https://github.com/AntonShevchuk/wme-base  
 GreasyFork: https://greasyfork.org/en/scripts/450221-wme-base  
