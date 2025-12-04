@@ -3,42 +3,55 @@ Base class for Greasy Fork plugins for Waze Map Editor.
 
 **What is it?**
 
-WME Base class is parent class for your scripts, it works with events from the WME Bootstrap library.
+WME Base class is the parent class for your scripts, it works with events from the WME Bootstrap library.
 
 ## Requirements
 
 ⚠️ [WME Bootstrap Library](https://greasyfork.org/en/scripts/450160-wme-bootstrap) - is required for correct working of this class
 
 ## Methods
+### Core & Utility
+Methods for initialization, logging, and lifecycle management.
 
+| Method                           | Returns | Description                                                            |
+|:---------------------------------|:--------|:-----------------------------------------------------------------------|
+| **constructor(name, settings?)** | `void`  | Initializes plugin instance, binds listeners, and attaches to WME SDK. |
+| **log(message, ...args)**        | `void`  | Logs a formatted message with the plugin prefix.                       |
+| **group(message, ...args)**      | `void`  | Starts a collapsed console log group.                                  |
+| **groupEnd()**                   | `void`  | Ends the current console group.                                        |
+| **onBeforeUnload(event)**        | `void`  | Browser lifecycle hook; useful for saving settings.                    |
 
-| Method                                   | Description                                                                      | Returns                |
-| ---------------------------------------- | -------------------------------------------------------------------------------- | ---------------------- |
-| **constructor(name, settings?)**         | Initializes plugin instance, binds WME event listeners, and attaches to WME SDK. | `void`                 |
-| **log(message, ...args)**                | Logs a formatted message with plugin prefix.                                     | `void`                 |
-| **group(message, ...args)**              | Starts a collapsed console log group.                                            | `void`                 |
-| **groupEnd()**                           | Ends the current console group.                                                  | `void`                 |
-| **onBeforeUnload(event)**                | Handles `beforeunload` — saves settings if available.                            | `void`                 |
-| **onNone(event)**                        | Triggered when no object is selected.                                            | `void`                 |
-| **onSegment(event, element, model)**     | Triggered when a single segment is selected.                                     | `void`                 |
-| **onSegments(event, element, models)**   | Triggered when multiple segments are selected.                                   | `void`                 |
-| **onNode(event, element, model)**        | Triggered when a single node is selected.                                        | `void`                 |
-| **onNodes(event, element, models)**      | Triggered when multiple nodes are selected.                                      | `void`                 |
-| **onVenue(event, element, model)**       | Triggered when a single venue (POI) is selected.                                 | `void`                 |
-| **onVenues(event, element, models)**     | Triggered when multiple venues are selected.                                     | `void`                 |
-| **onPlace(event, element, model)**       | Triggered when a place is selected.                                              | `void`                 |
-| **onPoint(event, element, model)**       | Triggered when a point POI is selected.                                          | `void`                 |
-| **onResidential(event, element, model)** | Triggered when a residential POI is selected.                                    | `void`                 |
-| **getAllVenues(except?)**                | Returns all venues excluding specified categories.                               | `Venue[]`              |
-| **getSelectedVenue()**                   | Returns the first selected venue.                                                | `Venue \| null`        |
-| **getSelectedVenues()**                  | Returns all selected venues.                                                     | `Venue[]`              |
-| **getSelectedVenueAddress()**            | Returns the address of the selected venue.                                       | `VenueAddress \| null` |
-| **getAllSegments(except?)**              | Returns all segments excluding specified road types.                             | `Segment[]`            |
-| **getSelectedSegment()**                 | Returns the first selected segment.                                              | `Segment \| null`      |
-| **getSelectedSegments()**                | Returns all selected segments.                                                   | `Segment[]`            |
-| **getAllNodes()**                        | Returns all available nodes.                                                     | `Node[]`               |
-| **getSelectedNode()**                    | Returns the first selected node.                                                 | `Node \| null`         |
-| **getSelectedNodes()**                   | Returns all selected nodes.                                                      | `Node[]`               |
+### Event Handlers
+Override these methods to handle user interactions. All handlers return `void`.
+
+| Method                                   | Description                                      |
+|:-----------------------------------------|:-------------------------------------------------|
+| **onNone(event)**                        | Triggered when the selection is cleared.         |
+| **onSegment(event, element, model)**     | Triggered when a single segment is selected.     |
+| **onSegments(event, element, models)**   | Triggered when multiple segments are selected.   |
+| **onNode(event, element, model)**        | Triggered when a single node is selected.        |
+| **onNodes(event, element, models)**      | Triggered when multiple nodes are selected.      |
+| **onVenue(event, element, model)**       | Triggered when a single venue (POI) is selected. |
+| **onVenues(event, element, models)**     | Triggered when multiple venues are selected.     |
+| **onPlace(event, element, model)**       | Triggered when a place is selected.              |
+| **onPoint(event, element, model)**       | Triggered when a point POI is selected.          |
+| **onResidential(event, element, model)** | Triggered when a residential POI is selected.    |
+
+### Data Helpers
+Helper methods to retrieve WME objects.
+
+| Method                        | Returns           | Description                                    |
+|:------------------------------|:------------------|:-----------------------------------------------|
+| **getAllSegments(except?)**   | `Segment[]`       | All segments (excluding specified road types). |
+| **getSelectedSegment()**      | `Segment \| null` | The first selected segment.                    |
+| **getSelectedSegments()**     | `Segment[]`       | All selected segments.                         |
+| **getAllNodes()**             | `Node[]`          | All available nodes.                           |
+| **getSelectedNode()**         | `Node \| null`    | The first selected node.                       |
+| **getSelectedNodes()**        | `Node[]`          | All selected nodes.                            |
+| **getAllVenues(except?)**     | `Venue[]`         | All venues (excluding specified categories).   |
+| **getSelectedVenue()**        | `Venue \| null`   | The first selected venue.                      |
+| **getSelectedVenues()**       | `Venue[]`         | All selected venues.                           |
+| **getSelectedVenueAddress()** | `Address \| null` | Address object of the selected venue.          |
 
 ## Example
 
