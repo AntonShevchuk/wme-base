@@ -188,6 +188,18 @@ class MySuperScript extends WMEBase {
 }
 ```
 
+## Development
+
+```bash
+npm install        # install dependencies
+npm run build      # build dist/WME-Base.user.js
+npm run watch      # rebuild on changes
+npm test           # run tests
+npm run test:watch # run tests in watch mode
+```
+
+Source is in `src/`, built with Rollup + TypeScript into `dist/WME-Base.user.js`.
+
 ## Links
 
 Author homepage: https://anton.shevchuk.name/  
