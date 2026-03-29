@@ -198,7 +198,15 @@ npm test           # run tests
 npm run test:watch # run tests in watch mode
 ```
 
-Source is in `src/`, built with Rollup + TypeScript into `dist/WME-Base.user.js`.
+Source is written in TypeScript under `src/`, built with Rollup into `dist/WME-Base.user.js`.
+
+```
+src/
+├── meta.ts          # userscript header
+├── globals.d.ts     # getWmeSdk, Settings declarations
+├── wme-base.ts      # WMEBase class
+└── index.ts         # exposes WMEBase to global scope
+```
 
 ## Links
 
