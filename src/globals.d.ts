@@ -7,3 +7,15 @@ declare class Settings {
   set(path: any[], value: any): void
   save(): void
 }
+
+declare class WMEUIHelper {
+  constructor(uid: string)
+  uid: string
+  index: number
+
+  generateId(): string
+  createPanel(title: string, attributes?: any): any
+  createTab(title: string, attributes?: any): any
+  createModal(title: string, attributes?: any): any
+  createFieldset(title: string, attributes?: any): any
+}
