@@ -1,4 +1,4 @@
-import type { Segment, SegmentAddress, Venue, VenueAddress } from 'wme-sdk-typings'
+import type { Segment, SegmentAddress, Venue, VenueAddress, Node as WMENode } from 'wme-sdk-typings'
 
 export class WMEBase {
   id: string
@@ -119,8 +119,8 @@ export class WMEBase {
   onNone (event: JQuery.Event) {}
   onSegment (event: JQuery.Event, element: HTMLElement, model: Segment) {}
   onSegments (event: JQuery.Event, element: HTMLElement, models: Segment[]) {}
-  onNode (event: JQuery.Event, element: HTMLElement, model: any) {}
-  onNodes (event: JQuery.Event, element: HTMLElement, models: any[]) {}
+  onNode (event: JQuery.Event, element: HTMLElement, model: WMENode) {}
+  onNodes (event: JQuery.Event, element: HTMLElement, models: WMENode[]) {}
   onVenue (event: JQuery.Event, element: HTMLElement, model: Venue) {}
   onVenues (event: JQuery.Event, element: HTMLElement, models: Venue[]) {}
   onPlace (event: JQuery.Event, element: HTMLElement, model: Venue) {}
@@ -202,17 +202,17 @@ export class WMEBase {
 
   // --- Nodes ---
 
-  getAllNodes (except: number[] = []): any[] {
+  getAllNodes (except: number[] = []): WMENode[] {
     const nodes = this.wmeSDK.DataModel.Nodes.getAll()
     if (!except.length) return nodes
-    return nodes.filter((node: any) => except.indexOf(node.id) === -1)
+    return nodes.filter((node: WMENode) => except.indexOf(node.id) === -1)
   }
 
-  getSelectedNode (): any {
+  getSelectedNode (): WMENode | null {
     return this.getSelectedNodes()?.[0] ?? null
   }
 
-  getSelectedNodes (): any[] {
+  getSelectedNodes (): WMENode[] {
     const selection = this.getSelection()
     if (!selection || selection.objectType !== 'node') {
       return []
