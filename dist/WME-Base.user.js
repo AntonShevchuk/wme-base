@@ -18,7 +18,7 @@
 
     class WMEBase {
         constructor(name, settings = null) {
-            this._settingsDirty = false;
+            this._helper = null;
             this.id = name.toLowerCase().replace(/\s+/g, '-');
             this.name = name;
             this.wmeSDK = getWmeSdk({
@@ -47,6 +47,16 @@
                 .on('residential.wme', (e, el, t) => this.onResidential(e, el, t));
             jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e));
         }
+        // --- WMEUIHelper (lazy) ---
+        /**
+         * Get or create WMEUIHelper instance
+         */
+        get helper() {
+            if (!this._helper) {
+                this._helper = new WMEUIHelper(this.name);
+            }
+            return this._helper;
+        }
         // --- Logging ---
         log(message, ...args) {
             console.log('%c' + this.name + ': %c' + message, 'color: #0DAD8D; font-weight: bold', 'color: dimgray; font-weight: normal', ...args);
@@ -63,18 +73,28 @@
         groupEnd() {
             console.groupEnd();
         }
+        // --- Shortcuts ---
+        /**
+         * Create a keyboard shortcut with automatic duplicate check
+         */
+        createShortcut(id, description, keys, callback) {
+            const shortcut = {
+                callback: callback,
+                description: description,
+                shortcutId: this.id + '-' + id,
+                shortcutKeys: keys,
+            };
+            if (keys && this.wmeSDK.Shortcuts.areShortcutKeysInUse({ shortcutKeys: keys })) {
+                this.warn('Shortcut "' + keys + '" already in use');
+                shortcut.shortcutKeys = null;
+            }
+            this.wmeSDK.Shortcuts.createShortcut(shortcut);
+        }
         // --- Event handlers ---
         onBeforeUnload(event) {
-            if (this.settings && this._settingsDirty) {
+            if (this.settings) {
                 this.settings.save();
-                this._settingsDirty = false;
             }
-        }
-        /**
-         * Mark settings as changed (will be saved on beforeunload)
-         */
-        markSettingsDirty() {
-            this._settingsDirty = true;
         }
         onNone(event) { }
         onSegment(event, element, model) { }
@@ -86,6 +106,20 @@
         onPlace(event, element, model) { }
         onPoint(event, element, model) { }
         onResidential(event, element, model) { }
+        // --- Permissions ---
+        /**
+         * Check if segment is editable (drivable + has permissions)
+         */
+        canEditSegment(model) {
+            return this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
+                && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id });
+        }
+        /**
+         * Check if venue is editable
+         */
+        canEditVenue(model) {
+            return this.wmeSDK.DataModel.Venues.hasPermissions({ venueId: model.id });
+        }
         // --- Selection helpers ---
         /**
          * Get the current selection or null

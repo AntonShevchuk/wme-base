@@ -3,7 +3,7 @@ export class WMEBase {
   name: string
   wmeSDK: any
   settings: Settings | null
-  private _settingsDirty: boolean = false
+  private _helper: any = null
 
   constructor (name: string, settings: any = null) {
     this.id = name.toLowerCase().replace(/\s+/g, '-')
@@ -35,6 +35,18 @@ export class WMEBase {
       .on('residential.wme', (e, el, t) => this.onResidential(e, el, t))
 
     jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e))
+  }
+
+  // --- WMEUIHelper (lazy) ---
+
+  /**
+   * Get or create WMEUIHelper instance
+   */
+  get helper (): any {
+    if (!this._helper) {
+      this._helper = new WMEUIHelper(this.name)
+    }
+    return this._helper
   }
 
   // --- Logging ---
@@ -79,20 +91,33 @@ export class WMEBase {
     console.groupEnd()
   }
 
+  // --- Shortcuts ---
+
+  /**
+   * Create a keyboard shortcut with automatic duplicate check
+   */
+  createShortcut (id: string, description: string, keys: string | null, callback: Function) {
+    const shortcut: any = {
+      callback: callback,
+      description: description,
+      shortcutId: this.id + '-' + id,
+      shortcutKeys: keys,
+    }
+
+    if (keys && this.wmeSDK.Shortcuts.areShortcutKeysInUse({ shortcutKeys: keys })) {
+      this.warn('Shortcut "' + keys + '" already in use')
+      shortcut.shortcutKeys = null
+    }
+
+    this.wmeSDK.Shortcuts.createShortcut(shortcut)
+  }
+
   // --- Event handlers ---
 
   onBeforeUnload (event: any) {
-    if (this.settings && this._settingsDirty) {
+    if (this.settings) {
       this.settings.save()
-      this._settingsDirty = false
     }
-  }
-
-  /**
-   * Mark settings as changed (will be saved on beforeunload)
-   */
-  markSettingsDirty () {
-    this._settingsDirty = true
   }
 
   onNone (event: any) {}
@@ -105,6 +130,23 @@ export class WMEBase {
   onPlace (event: any, element: any, model: any) {}
   onPoint (event: any, element: any, model: any) {}
   onResidential (event: any, element: any, model: any) {}
+
+  // --- Permissions ---
+
+  /**
+   * Check if segment is editable (drivable + has permissions)
+   */
+  canEditSegment (model: any): boolean {
+    return this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
+      && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })
+  }
+
+  /**
+   * Check if venue is editable
+   */
+  canEditVenue (model: any): boolean {
+    return this.wmeSDK.DataModel.Venues.hasPermissions({ venueId: model.id })
+  }
 
   // --- Selection helpers ---
 
