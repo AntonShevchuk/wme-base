@@ -110,22 +110,22 @@ export class WMEBase {
 
   // --- Event handlers ---
 
-  onBeforeUnload (event: any) {
+  onBeforeUnload (event: JQuery.Event) {
     if (this.settings) {
       this.settings.save()
     }
   }
 
-  onNone (event: any) {}
-  onSegment (event: any, element: HTMLElement, model: Segment) {}
-  onSegments (event: any, element: HTMLElement, models: Segment[]) {}
-  onNode (event: any, element: HTMLElement, model: any) {}
-  onNodes (event: any, element: HTMLElement, models: any[]) {}
-  onVenue (event: any, element: HTMLElement, model: Venue) {}
-  onVenues (event: any, element: HTMLElement, models: Venue[]) {}
-  onPlace (event: any, element: HTMLElement, model: Venue) {}
-  onPoint (event: any, element: HTMLElement, model: Venue) {}
-  onResidential (event: any, element: HTMLElement, model: Venue) {}
+  onNone (event: JQuery.Event) {}
+  onSegment (event: JQuery.Event, element: HTMLElement, model: Segment) {}
+  onSegments (event: JQuery.Event, element: HTMLElement, models: Segment[]) {}
+  onNode (event: JQuery.Event, element: HTMLElement, model: any) {}
+  onNodes (event: JQuery.Event, element: HTMLElement, models: any[]) {}
+  onVenue (event: JQuery.Event, element: HTMLElement, model: Venue) {}
+  onVenues (event: JQuery.Event, element: HTMLElement, models: Venue[]) {}
+  onPlace (event: JQuery.Event, element: HTMLElement, model: Venue) {}
+  onPoint (event: JQuery.Event, element: HTMLElement, model: Venue) {}
+  onResidential (event: JQuery.Event, element: HTMLElement, model: Venue) {}
 
   // --- Permissions ---
 

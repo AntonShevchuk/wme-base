@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.4.0
+// @version      0.5.0
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
