@@ -1,3 +1,5 @@
+import type { Segment, SegmentAddress, Venue, VenueAddress } from 'wme-sdk-typings'
+
 export class WMEBase {
   id: string
   name: string
@@ -39,9 +41,6 @@ export class WMEBase {
 
   // --- WMEUIHelper (lazy) ---
 
-  /**
-   * Get or create WMEUIHelper instance
-   */
   get helper (): any {
     if (!this._helper) {
       this._helper = new WMEUIHelper(this.name)
@@ -93,9 +92,6 @@ export class WMEBase {
 
   // --- Shortcuts ---
 
-  /**
-   * Create a keyboard shortcut with automatic duplicate check
-   */
   createShortcut (id: string, description: string, keys: string | null, callback: Function) {
     const shortcut: any = {
       callback: callback,
@@ -121,65 +117,56 @@ export class WMEBase {
   }
 
   onNone (event: any) {}
-  onSegment (event: any, element: any, model: any) {}
-  onSegments (event: any, element: any, models: any) {}
-  onNode (event: any, element: any, model: any) {}
-  onNodes (event: any, element: any, models: any) {}
-  onVenue (event: any, element: any, model: any) {}
-  onVenues (event: any, element: any, models: any) {}
-  onPlace (event: any, element: any, model: any) {}
-  onPoint (event: any, element: any, model: any) {}
-  onResidential (event: any, element: any, model: any) {}
+  onSegment (event: any, element: HTMLElement, model: Segment) {}
+  onSegments (event: any, element: HTMLElement, models: Segment[]) {}
+  onNode (event: any, element: HTMLElement, model: any) {}
+  onNodes (event: any, element: HTMLElement, models: any[]) {}
+  onVenue (event: any, element: HTMLElement, model: Venue) {}
+  onVenues (event: any, element: HTMLElement, models: Venue[]) {}
+  onPlace (event: any, element: HTMLElement, model: Venue) {}
+  onPoint (event: any, element: HTMLElement, model: Venue) {}
+  onResidential (event: any, element: HTMLElement, model: Venue) {}
 
   // --- Permissions ---
 
-  /**
-   * Check if segment is editable (drivable + has permissions)
-   */
-  canEditSegment (model: any): boolean {
+  canEditSegment (model: Segment): boolean {
     return this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
       && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id })
   }
 
-  /**
-   * Check if venue is editable
-   */
-  canEditVenue (model: any): boolean {
+  canEditVenue (model: Venue): boolean {
     return this.wmeSDK.DataModel.Venues.hasPermissions({ venueId: model.id })
   }
 
-  // --- Selection helpers ---
+  // --- Selection ---
 
-  /**
-   * Get the current selection or null
-   */
   getSelection (): any {
     return this.wmeSDK.Editing.getSelection() || null
   }
 
   // --- Venues ---
 
-  getAllVenues (except: string[] = []) {
+  getAllVenues (except: string[] = []): Venue[] {
     const venues = this.wmeSDK.DataModel.Venues.getAll()
     const rank = this.wmeSDK.State.getUserInfo().rank
     return venues
-      .filter((venue: any) => venue.lockRank <= rank)
-      .filter((venue: any) => !except.length || except.indexOf(venue.categories[0]) === -1)
+      .filter((venue: Venue) => venue.lockRank <= rank)
+      .filter((venue: Venue) => !except.length || except.indexOf(venue.categories[0]) === -1)
   }
 
-  getSelectedVenue () {
+  getSelectedVenue (): Venue | null {
     return this.getSelectedVenues()?.[0] ?? null
   }
 
-  getSelectedVenues () {
+  getSelectedVenues (): Venue[] {
     const selection = this.getSelection()
     if (!selection || selection.objectType !== 'venue') {
       return []
     }
-    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Venues.getById({ venueId: id }))
+    return selection.ids.map((id: number) => this.wmeSDK.DataModel.Venues.getById({ venueId: id }))
   }
 
-  getSelectedVenueAddress () {
+  getSelectedVenueAddress (): VenueAddress | null {
     const venue = this.getSelectedVenue()
     if (!venue) return null
     return this.wmeSDK.DataModel.Venues.getAddress({ venueId: venue.id })
@@ -187,27 +174,27 @@ export class WMEBase {
 
   // --- Segments ---
 
-  getAllSegments (except: number[] = []) {
+  getAllSegments (except: number[] = []): Segment[] {
     const segments = this.wmeSDK.DataModel.Segments.getAll()
     const rank = this.wmeSDK.State.getUserInfo().rank
     return segments
-      .filter((segment: any) => segment.lockRank <= rank)
-      .filter((segment: any) => !except.length || except.indexOf(segment.roadType) === -1)
+      .filter((segment: Segment) => segment.lockRank <= rank)
+      .filter((segment: Segment) => !except.length || except.indexOf(segment.roadType) === -1)
   }
 
-  getSelectedSegment () {
+  getSelectedSegment (): Segment | null {
     return this.getSelectedSegments()?.[0] ?? null
   }
 
-  getSelectedSegments () {
+  getSelectedSegments (): Segment[] {
     const selection = this.getSelection()
     if (!selection || selection.objectType !== 'segment') {
       return []
     }
-    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Segments.getById({ segmentId: id }))
+    return selection.ids.map((id: number) => this.wmeSDK.DataModel.Segments.getById({ segmentId: id }))
   }
 
-  getSelectedSegmentAddress () {
+  getSelectedSegmentAddress (): SegmentAddress | null {
     const segment = this.getSelectedSegment()
     if (!segment) return null
     return this.wmeSDK.DataModel.Segments.getAddress({ segmentId: segment.id })
@@ -215,21 +202,21 @@ export class WMEBase {
 
   // --- Nodes ---
 
-  getAllNodes (except: number[] = []) {
+  getAllNodes (except: number[] = []): any[] {
     const nodes = this.wmeSDK.DataModel.Nodes.getAll()
     if (!except.length) return nodes
     return nodes.filter((node: any) => except.indexOf(node.id) === -1)
   }
 
-  getSelectedNode () {
+  getSelectedNode (): any {
     return this.getSelectedNodes()?.[0] ?? null
   }
 
-  getSelectedNodes () {
+  getSelectedNodes (): any[] {
     const selection = this.getSelection()
     if (!selection || selection.objectType !== 'node') {
       return []
     }
-    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Nodes.getById({ nodeId: id }))
+    return selection.ids.map((id: number) => this.wmeSDK.DataModel.Nodes.getById({ nodeId: id }))
   }
 }

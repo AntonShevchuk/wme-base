@@ -1,3 +1,5 @@
+/// <reference types="wme-sdk-typings" />
+
 declare function getWmeSdk(options: { scriptId: string, scriptName: string }): any
 
 declare class Settings {

@@ -48,9 +48,6 @@
             jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e));
         }
         // --- WMEUIHelper (lazy) ---
-        /**
-         * Get or create WMEUIHelper instance
-         */
         get helper() {
             if (!this._helper) {
                 this._helper = new WMEUIHelper(this.name);
@@ -74,9 +71,6 @@
             console.groupEnd();
         }
         // --- Shortcuts ---
-        /**
-         * Create a keyboard shortcut with automatic duplicate check
-         */
         createShortcut(id, description, keys, callback) {
             const shortcut = {
                 callback: callback,
@@ -107,23 +101,14 @@
         onPoint(event, element, model) { }
         onResidential(event, element, model) { }
         // --- Permissions ---
-        /**
-         * Check if segment is editable (drivable + has permissions)
-         */
         canEditSegment(model) {
             return this.wmeSDK.DataModel.Segments.isRoadTypeDrivable({ roadType: model.roadType })
                 && this.wmeSDK.DataModel.Segments.hasPermissions({ segmentId: model.id });
         }
-        /**
-         * Check if venue is editable
-         */
         canEditVenue(model) {
             return this.wmeSDK.DataModel.Venues.hasPermissions({ venueId: model.id });
         }
-        // --- Selection helpers ---
-        /**
-         * Get the current selection or null
-         */
+        // --- Selection ---
         getSelection() {
             return this.wmeSDK.Editing.getSelection() || null;
         }
