@@ -3,17 +3,16 @@ export class WMEBase {
   name: string
   wmeSDK: any
   settings: Settings | null
+  private _settingsDirty: boolean = false
 
   constructor (name: string, settings: any = null) {
-    this.id = name.toLowerCase().replace(' ', '-')
+    this.id = name.toLowerCase().replace(/\s+/g, '-')
     this.name = name
 
-    this.wmeSDK = getWmeSdk(
-      {
-        scriptId: this.id,
-        scriptName: this.name
-      }
-    )
+    this.wmeSDK = getWmeSdk({
+      scriptId: this.id,
+      scriptName: this.name,
+    })
 
     if (settings && settings instanceof Settings) {
       this.settings = settings
@@ -38,10 +37,30 @@ export class WMEBase {
     jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e))
   }
 
+  // --- Logging ---
+
   log (message: string, ...args: any[]) {
     console.log(
       '%c' + this.name + ': %c' + message,
       'color: #0DAD8D; font-weight: bold',
+      'color: dimgray; font-weight: normal',
+      ...args
+    )
+  }
+
+  warn (message: string, ...args: any[]) {
+    console.warn(
+      '%c' + this.name + ': %c' + message,
+      'color: #DAA520; font-weight: bold',
+      'color: dimgray; font-weight: normal',
+      ...args
+    )
+  }
+
+  error (message: string, ...args: any[]) {
+    console.error(
+      '%c' + this.name + ': %c' + message,
+      'color: #FF4444; font-weight: bold',
       'color: dimgray; font-weight: normal',
       ...args
     )
@@ -56,56 +75,54 @@ export class WMEBase {
     )
   }
 
-  groupEnd() {
+  groupEnd () {
     console.groupEnd()
   }
 
+  // --- Event handlers ---
+
   onBeforeUnload (event: any) {
-    if (this.settings) {
+    if (this.settings && this._settingsDirty) {
       this.settings.save()
+      this._settingsDirty = false
     }
   }
 
-  onNone (event: any) {
+  /**
+   * Mark settings as changed (will be saved on beforeunload)
+   */
+  markSettingsDirty () {
+    this._settingsDirty = true
   }
 
-  onSegment (event: any, element: any, model: any) {
+  onNone (event: any) {}
+  onSegment (event: any, element: any, model: any) {}
+  onSegments (event: any, element: any, models: any) {}
+  onNode (event: any, element: any, model: any) {}
+  onNodes (event: any, element: any, models: any) {}
+  onVenue (event: any, element: any, model: any) {}
+  onVenues (event: any, element: any, models: any) {}
+  onPlace (event: any, element: any, model: any) {}
+  onPoint (event: any, element: any, model: any) {}
+  onResidential (event: any, element: any, model: any) {}
+
+  // --- Selection helpers ---
+
+  /**
+   * Get the current selection or null
+   */
+  getSelection (): any {
+    return this.wmeSDK.Editing.getSelection() || null
   }
 
-  onSegments (event: any, element: any, models: any) {
-  }
-
-  onNode (event: any, element: any, model: any) {
-  }
-
-  onNodes (event: any, element: any, models: any) {
-  }
-
-  onVenue (event: any, element: any, model: any) {
-  }
-
-  onVenues (event: any, element: any, models: any) {
-  }
-
-  onPlace (event: any, element: any, model: any) {
-  }
-
-  onPoint (event: any, element: any, model: any) {
-  }
-
-  onResidential (event: any, element: any, model: any) {
-  }
+  // --- Venues ---
 
   getAllVenues (except: string[] = []) {
-    let selected = this.wmeSDK.DataModel.Venues.getAll()
-    let rank = this.wmeSDK.State.getUserInfo().rank
-    // filter by lock rank
-    selected = selected.filter((venue: any) => venue.lockRank <= rank)
-    // filter by main category
-    if (except.length) {
-      selected = selected.filter((venue: any) => except.indexOf(venue.categories[0]) === -1)
-    }
-    return selected
+    const venues = this.wmeSDK.DataModel.Venues.getAll()
+    const rank = this.wmeSDK.State.getUserInfo().rank
+    return venues
+      .filter((venue: any) => venue.lockRank <= rank)
+      .filter((venue: any) => !except.length || except.indexOf(venue.categories[0]) === -1)
   }
 
   getSelectedVenue () {
@@ -113,31 +130,27 @@ export class WMEBase {
   }
 
   getSelectedVenues () {
-    let selection = this.wmeSDK.Editing.getSelection()
+    const selection = this.getSelection()
     if (!selection || selection.objectType !== 'venue') {
       return []
     }
-    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Venues.getById( { venueId: id } ))
+    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Venues.getById({ venueId: id }))
   }
 
   getSelectedVenueAddress () {
-    let venue = this.getSelectedVenue()
-    if (!venue) {
-      return null
-    }
+    const venue = this.getSelectedVenue()
+    if (!venue) return null
     return this.wmeSDK.DataModel.Venues.getAddress({ venueId: venue.id })
   }
 
+  // --- Segments ---
+
   getAllSegments (except: number[] = []) {
-    let selected = this.wmeSDK.DataModel.Segments.getAll()
-    let rank = this.wmeSDK.State.getUserInfo().rank
-    // filter by lock rank
-    selected = selected.filter((segment: any) => segment.lockRank <= rank)
-    // filter by road type
-    if (except.length) {
-      selected = selected.filter((segment: any) => except.indexOf(segment.roadType) === -1)
-    }
-    return selected
+    const segments = this.wmeSDK.DataModel.Segments.getAll()
+    const rank = this.wmeSDK.State.getUserInfo().rank
+    return segments
+      .filter((segment: any) => segment.lockRank <= rank)
+      .filter((segment: any) => !except.length || except.indexOf(segment.roadType) === -1)
   }
 
   getSelectedSegment () {
@@ -145,15 +158,25 @@ export class WMEBase {
   }
 
   getSelectedSegments () {
-    let selection = this.wmeSDK.Editing.getSelection()
+    const selection = this.getSelection()
     if (!selection || selection.objectType !== 'segment') {
       return []
     }
-    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Segments.getById( { segmentId: id } ))
+    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Segments.getById({ segmentId: id }))
   }
 
-  getAllNodes (except: any[] = []) {
-    return this.wmeSDK.DataModel.Nodes.getAll()
+  getSelectedSegmentAddress () {
+    const segment = this.getSelectedSegment()
+    if (!segment) return null
+    return this.wmeSDK.DataModel.Segments.getAddress({ segmentId: segment.id })
+  }
+
+  // --- Nodes ---
+
+  getAllNodes (except: number[] = []) {
+    const nodes = this.wmeSDK.DataModel.Nodes.getAll()
+    if (!except.length) return nodes
+    return nodes.filter((node: any) => except.indexOf(node.id) === -1)
   }
 
   getSelectedNode () {
@@ -161,10 +184,10 @@ export class WMEBase {
   }
 
   getSelectedNodes () {
-    let selection = this.wmeSDK.Editing.getSelection()
+    const selection = this.getSelection()
     if (!selection || selection.objectType !== 'node') {
       return []
     }
-    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Nodes.getById( { nodeId: id } ))
+    return selection.ids.map((id: any) => this.wmeSDK.DataModel.Nodes.getById({ nodeId: id }))
   }
 }

@@ -18,11 +18,12 @@
 
     class WMEBase {
         constructor(name, settings = null) {
-            this.id = name.toLowerCase().replace(' ', '-');
+            this._settingsDirty = false;
+            this.id = name.toLowerCase().replace(/\s+/g, '-');
             this.name = name;
             this.wmeSDK = getWmeSdk({
                 scriptId: this.id,
-                scriptName: this.name
+                scriptName: this.name,
             });
             if (settings && settings instanceof Settings) {
                 this.settings = settings;
@@ -46,8 +47,15 @@
                 .on('residential.wme', (e, el, t) => this.onResidential(e, el, t));
             jQuery(window).on('beforeunload', (e) => this.onBeforeUnload(e));
         }
+        // --- Logging ---
         log(message, ...args) {
             console.log('%c' + this.name + ': %c' + message, 'color: #0DAD8D; font-weight: bold', 'color: dimgray; font-weight: normal', ...args);
+        }
+        warn(message, ...args) {
+            console.warn('%c' + this.name + ': %c' + message, 'color: #DAA520; font-weight: bold', 'color: dimgray; font-weight: normal', ...args);
+        }
+        error(message, ...args) {
+            console.error('%c' + this.name + ': %c' + message, 'color: #FF4444; font-weight: bold', 'color: dimgray; font-weight: normal', ...args);
         }
         group(message, ...args) {
             console.groupCollapsed('%c' + this.name + ': %c' + message, 'color: #0DAD8D; font-weight: bold', 'color: dimgray; font-weight: normal', ...args);
@@ -55,88 +63,96 @@
         groupEnd() {
             console.groupEnd();
         }
+        // --- Event handlers ---
         onBeforeUnload(event) {
-            if (this.settings) {
+            if (this.settings && this._settingsDirty) {
                 this.settings.save();
+                this._settingsDirty = false;
             }
         }
-        onNone(event) {
+        /**
+         * Mark settings as changed (will be saved on beforeunload)
+         */
+        markSettingsDirty() {
+            this._settingsDirty = true;
         }
-        onSegment(event, element, model) {
+        onNone(event) { }
+        onSegment(event, element, model) { }
+        onSegments(event, element, models) { }
+        onNode(event, element, model) { }
+        onNodes(event, element, models) { }
+        onVenue(event, element, model) { }
+        onVenues(event, element, models) { }
+        onPlace(event, element, model) { }
+        onPoint(event, element, model) { }
+        onResidential(event, element, model) { }
+        // --- Selection helpers ---
+        /**
+         * Get the current selection or null
+         */
+        getSelection() {
+            return this.wmeSDK.Editing.getSelection() || null;
         }
-        onSegments(event, element, models) {
-        }
-        onNode(event, element, model) {
-        }
-        onNodes(event, element, models) {
-        }
-        onVenue(event, element, model) {
-        }
-        onVenues(event, element, models) {
-        }
-        onPlace(event, element, model) {
-        }
-        onPoint(event, element, model) {
-        }
-        onResidential(event, element, model) {
-        }
+        // --- Venues ---
         getAllVenues(except = []) {
-            let selected = this.wmeSDK.DataModel.Venues.getAll();
-            let rank = this.wmeSDK.State.getUserInfo().rank;
-            // filter by lock rank
-            selected = selected.filter((venue) => venue.lockRank <= rank);
-            // filter by main category
-            if (except.length) {
-                selected = selected.filter((venue) => except.indexOf(venue.categories[0]) === -1);
-            }
-            return selected;
+            const venues = this.wmeSDK.DataModel.Venues.getAll();
+            const rank = this.wmeSDK.State.getUserInfo().rank;
+            return venues
+                .filter((venue) => venue.lockRank <= rank)
+                .filter((venue) => !except.length || except.indexOf(venue.categories[0]) === -1);
         }
         getSelectedVenue() {
             return this.getSelectedVenues()?.[0] ?? null;
         }
         getSelectedVenues() {
-            let selection = this.wmeSDK.Editing.getSelection();
+            const selection = this.getSelection();
             if (!selection || selection.objectType !== 'venue') {
                 return [];
             }
             return selection.ids.map((id) => this.wmeSDK.DataModel.Venues.getById({ venueId: id }));
         }
         getSelectedVenueAddress() {
-            let venue = this.getSelectedVenue();
-            if (!venue) {
+            const venue = this.getSelectedVenue();
+            if (!venue)
                 return null;
-            }
             return this.wmeSDK.DataModel.Venues.getAddress({ venueId: venue.id });
         }
+        // --- Segments ---
         getAllSegments(except = []) {
-            let selected = this.wmeSDK.DataModel.Segments.getAll();
-            let rank = this.wmeSDK.State.getUserInfo().rank;
-            // filter by lock rank
-            selected = selected.filter((segment) => segment.lockRank <= rank);
-            // filter by road type
-            if (except.length) {
-                selected = selected.filter((segment) => except.indexOf(segment.roadType) === -1);
-            }
-            return selected;
+            const segments = this.wmeSDK.DataModel.Segments.getAll();
+            const rank = this.wmeSDK.State.getUserInfo().rank;
+            return segments
+                .filter((segment) => segment.lockRank <= rank)
+                .filter((segment) => !except.length || except.indexOf(segment.roadType) === -1);
         }
         getSelectedSegment() {
             return this.getSelectedSegments()?.[0] ?? null;
         }
         getSelectedSegments() {
-            let selection = this.wmeSDK.Editing.getSelection();
+            const selection = this.getSelection();
             if (!selection || selection.objectType !== 'segment') {
                 return [];
             }
             return selection.ids.map((id) => this.wmeSDK.DataModel.Segments.getById({ segmentId: id }));
         }
+        getSelectedSegmentAddress() {
+            const segment = this.getSelectedSegment();
+            if (!segment)
+                return null;
+            return this.wmeSDK.DataModel.Segments.getAddress({ segmentId: segment.id });
+        }
+        // --- Nodes ---
         getAllNodes(except = []) {
-            return this.wmeSDK.DataModel.Nodes.getAll();
+            const nodes = this.wmeSDK.DataModel.Nodes.getAll();
+            if (!except.length)
+                return nodes;
+            return nodes.filter((node) => except.indexOf(node.id) === -1);
         }
         getSelectedNode() {
             return this.getSelectedNodes()?.[0] ?? null;
         }
         getSelectedNodes() {
-            let selection = this.wmeSDK.Editing.getSelection();
+            const selection = this.getSelection();
             if (!selection || selection.objectType !== 'node') {
                 return [];
             }
