@@ -21,7 +21,7 @@ export class WMEBase {
     } else if (settings) {
       this.settings = new Settings(name, settings)
     } else {
-      this.settings = null
+      this.settings = new Settings(name, {})
     }
 
     jQuery(document)
@@ -94,9 +94,23 @@ export class WMEBase {
 
   createShortcut (id: string, description: string, keys: string | null, callback: Function) {
     const shortcutId = this.id + '-' + id
-    const effective = this.settings && this.settings.has('shortcuts', shortcutId)
-      ? this.settings.get('shortcuts', shortcutId)
-      : keys
+    let effective: string | null
+    if (this.settings && this.settings.has('shortcuts', shortcutId)) {
+      // getAllShortcuts() returns numeric format "mod,keyCode" (e.g. "4,56");
+      // createShortcut() requires combo format "A+8". Convert on read-back.
+      effective = this.normalizeShortcutKeys(this.settings.get('shortcuts', shortcutId))
+    } else {
+      effective = keys
+    }
+
+    // The SDK requires the prior registration to be removed before
+    // re-creating with the same id. isShortcutRegistered is unreliable,
+    // so try delete unconditionally and swallow the "not found" error.
+    try {
+      this.wmeSDK.Shortcuts.deleteShortcut({ shortcutId })
+    } catch (e) {
+      // expected on first load
+    }
 
     const shortcut: any = {
       callback: callback,
@@ -113,14 +127,38 @@ export class WMEBase {
     this.wmeSDK.Shortcuts.createShortcut(shortcut)
   }
 
+  // Convert WME's stored numeric format ("4,56" = Alt+8) to the combo
+  // format createShortcut expects ("A+8"). Pass through combo strings and
+  // null unchanged.
+  protected normalizeShortcutKeys (keys: any): string | null {
+    if (keys == null) return null
+    const str = String(keys)
+    if (!/^\d+,-?\d+$/.test(str)) return str
+    const [modStr, codeStr] = str.split(',')
+    const mod = parseInt(modStr, 10)
+    const code = parseInt(codeStr, 10)
+    if (isNaN(mod) || isNaN(code) || code < 0) return null
+    let mods = ''
+    if (mod & 4) mods += 'A'
+    if (mod & 1) mods += 'C'
+    if (mod & 2) mods += 'S'
+    let char: string
+    if (code >= 48 && code <= 57) char = String.fromCharCode(code)
+    else if (code >= 65 && code <= 90) char = String.fromCharCode(code).toLowerCase()
+    else char = String(code)
+    return mods ? mods + '+' + char : char
+  }
+
   // --- Event handlers ---
 
   onBeforeUnload (event: JQuery.Event) {
     if (!this.settings) return
     try {
+      const prefix = this.id + '-'
       const all = this.wmeSDK.Shortcuts.getAllShortcuts() || []
       for (const sc of all) {
-        this.settings.set(['shortcuts', sc.shortcutId], sc.shortcutKeys ?? null)
+        if (!sc.shortcutId || !sc.shortcutId.startsWith(prefix)) continue
+        this.settings.set(['shortcuts', sc.shortcutId], sc.shortcutKeys)
       }
     } catch (e) {
       this.warn('Failed to persist shortcuts', e)
