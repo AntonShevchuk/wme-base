@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME Base
-// @version      0.5.0
+// @version      0.6.0
 // @description  Base class for Greasy Fork plugins for Waze Map Editor
 // @license      MIT License
 // @author       Anton Shevchuk
@@ -72,23 +72,36 @@
         }
         // --- Shortcuts ---
         createShortcut(id, description, keys, callback) {
+            const shortcutId = this.id + '-' + id;
+            const effective = this.settings && this.settings.has('shortcuts', shortcutId)
+                ? this.settings.get('shortcuts', shortcutId)
+                : keys;
             const shortcut = {
                 callback: callback,
                 description: description,
-                shortcutId: this.id + '-' + id,
-                shortcutKeys: keys,
+                shortcutId: shortcutId,
+                shortcutKeys: effective,
             };
-            if (keys && this.wmeSDK.Shortcuts.areShortcutKeysInUse({ shortcutKeys: keys })) {
-                this.warn('Shortcut "' + keys + '" already in use');
+            if (effective && this.wmeSDK.Shortcuts.areShortcutKeysInUse({ shortcutKeys: effective })) {
+                this.warn('Shortcut "' + effective + '" already in use');
                 shortcut.shortcutKeys = null;
             }
             this.wmeSDK.Shortcuts.createShortcut(shortcut);
         }
         // --- Event handlers ---
         onBeforeUnload(event) {
-            if (this.settings) {
-                this.settings.save();
+            if (!this.settings)
+                return;
+            try {
+                const all = this.wmeSDK.Shortcuts.getAllShortcuts() || [];
+                for (const sc of all) {
+                    this.settings.set(['shortcuts', sc.shortcutId], sc.shortcutKeys ?? null);
+                }
             }
+            catch (e) {
+                this.warn('Failed to persist shortcuts', e);
+            }
+            this.settings.save();
         }
         onNone(event) { }
         onSegment(event, element, model) { }

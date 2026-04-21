@@ -7,6 +7,7 @@ declare class Settings {
   container: any
   get(...keys: string[]): any
   set(path: any[], value: any): void
+  has(...keys: string[]): boolean
   save(): void
 }
 

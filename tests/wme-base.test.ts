@@ -7,6 +7,9 @@ const mockGetById = vi.fn()
 const mockGetSelection = vi.fn()
 const mockGetUserInfo = vi.fn(() => ({ rank: 3 }))
 const mockGetAddress = vi.fn()
+const mockCreateShortcut = vi.fn()
+const mockAreShortcutKeysInUse = vi.fn(() => false)
+const mockGetAllShortcuts = vi.fn(() => [])
 
 const mockWmeSDK = {
   DataModel: {
@@ -30,6 +33,11 @@ const mockWmeSDK = {
   State: {
     getUserInfo: mockGetUserInfo,
   },
+  Shortcuts: {
+    createShortcut: mockCreateShortcut,
+    areShortcutKeysInUse: mockAreShortcutKeysInUse,
+    getAllShortcuts: mockGetAllShortcuts,
+  },
 }
 
 // Mock jQuery
@@ -41,7 +49,7 @@ globalThis.jQuery = mockJQuery
 // @ts-ignore
 globalThis.getWmeSdk = vi.fn(() => mockWmeSDK)
 
-// Mock Settings class
+// Mock Settings class — walks `container` like the real one does
 class MockSettings {
   name: string
   defaults: any
@@ -51,8 +59,31 @@ class MockSettings {
     this.defaults = defaults
     this.container = {}
   }
-  get(...keys: string[]) { return null }
-  set(path: any[], value: any) {}
+  get(...keys: string[]): any {
+    if (keys.length === 0) return this.container
+    let target: any = this.container
+    for (const k of keys) {
+      if (typeof target[k] === 'undefined') return null
+      target = target[k]
+    }
+    return target
+  }
+  set(path: any[], value: any) {
+    let target: any = this.container
+    for (let i = 0; i < path.length - 1; i++) {
+      if (typeof target[path[i]] === 'undefined') target[path[i]] = {}
+      target = target[path[i]]
+    }
+    target[path[path.length - 1]] = value
+  }
+  has(...keys: string[]): boolean {
+    let target: any = this.container
+    for (const k of keys) {
+      if (typeof target[k] === 'undefined') return false
+      target = target[k]
+    }
+    return true
+  }
   save() { mockSave() }
 }
 // @ts-ignore
@@ -205,6 +236,116 @@ describe('WMEBase', () => {
       base.groupEnd()
       expect(spy).toHaveBeenCalled()
       spy.mockRestore()
+    })
+  })
+
+  describe('createShortcut', () => {
+    it('uses the provided default keys when no settings are attached', () => {
+      const base = new WMEBase('Test')
+      base.createShortcut('simplify', 'Simplify', 'A+E', () => {})
+      expect(mockCreateShortcut).toHaveBeenCalledWith(expect.objectContaining({
+        shortcutId: 'test-simplify',
+        shortcutKeys: 'A+E',
+      }))
+    })
+
+    it('uses the provided default keys when settings has no saved binding', () => {
+      const settings = new MockSettings('Test', {})
+      const base = new WMEBase('Test', settings)
+      base.createShortcut('simplify', 'Simplify', 'A+E', () => {})
+      expect(mockCreateShortcut).toHaveBeenCalledWith(expect.objectContaining({
+        shortcutId: 'test-simplify',
+        shortcutKeys: 'A+E',
+      }))
+    })
+
+    it('prefers the user-saved keys over the provided default', () => {
+      const settings = new MockSettings('Test', {})
+      settings.set(['shortcuts', 'test-simplify'], 'A+R')
+      const base = new WMEBase('Test', settings)
+      base.createShortcut('simplify', 'Simplify', 'A+E', () => {})
+      expect(mockCreateShortcut).toHaveBeenCalledWith(expect.objectContaining({
+        shortcutId: 'test-simplify',
+        shortcutKeys: 'A+R',
+      }))
+    })
+
+    it('uses null when the user has cleared the binding', () => {
+      const settings = new MockSettings('Test', {})
+      settings.set(['shortcuts', 'test-simplify'], null)
+      const base = new WMEBase('Test', settings)
+      base.createShortcut('simplify', 'Simplify', 'A+E', () => {})
+      expect(mockCreateShortcut).toHaveBeenCalledWith(expect.objectContaining({
+        shortcutId: 'test-simplify',
+        shortcutKeys: null,
+      }))
+    })
+
+    it('nulls effective keys if they are already in use', () => {
+      const settings = new MockSettings('Test', {})
+      settings.set(['shortcuts', 'test-simplify'], 'A+R')
+      mockAreShortcutKeysInUse.mockReturnValueOnce(true)
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const base = new WMEBase('Test', settings)
+      base.createShortcut('simplify', 'Simplify', 'A+E', () => {})
+      expect(mockCreateShortcut).toHaveBeenCalledWith(expect.objectContaining({
+        shortcutId: 'test-simplify',
+        shortcutKeys: null,
+      }))
+      warnSpy.mockRestore()
+    })
+  })
+
+  describe('onBeforeUnload shortcut persistence', () => {
+    it('writes current SDK shortcut keys to settings before saving', () => {
+      const settings = new MockSettings('Test', {})
+      mockGetAllShortcuts.mockReturnValueOnce([
+        { shortcutId: 'test-simplify', shortcutKeys: 'A+R', description: '', callback: () => {} },
+        { shortcutId: 'test-all', shortcutKeys: 'A+Y', description: '', callback: () => {} },
+      ])
+      const base = new WMEBase('Test', settings)
+      base.onBeforeUnload({} as any)
+
+      expect(settings.get('shortcuts', 'test-simplify')).toBe('A+R')
+      expect(settings.get('shortcuts', 'test-all')).toBe('A+Y')
+      expect(mockSave).toHaveBeenCalled()
+    })
+
+    it('still saves settings if getAllShortcuts throws', () => {
+      const settings = new MockSettings('Test', {})
+      mockGetAllShortcuts.mockImplementationOnce(() => { throw new Error('SDK unavailable') })
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const base = new WMEBase('Test', settings)
+      base.onBeforeUnload({} as any)
+      expect(mockSave).toHaveBeenCalled()
+      warnSpy.mockRestore()
+    })
+
+    it('is a no-op when settings are not attached', () => {
+      const base = new WMEBase('Test')
+      base.onBeforeUnload({} as any)
+      expect(mockGetAllShortcuts).not.toHaveBeenCalled()
+      expect(mockSave).not.toHaveBeenCalled()
+    })
+
+    it('round-trips user-rebound keys across reloads', () => {
+      const settings = new MockSettings('Test', {})
+      const base1 = new WMEBase('Test', settings)
+      base1.createShortcut('simplify', 'Simplify', 'A+E', () => {})
+
+      // user rebinds via WME UI — SDK now reports new keys
+      mockGetAllShortcuts.mockReturnValueOnce([
+        { shortcutId: 'test-simplify', shortcutKeys: 'A+R', description: '', callback: () => {} },
+      ])
+      base1.onBeforeUnload({} as any)
+
+      // next session: new WMEBase with same settings container
+      mockCreateShortcut.mockClear()
+      const base2 = new WMEBase('Test', settings)
+      base2.createShortcut('simplify', 'Simplify', 'A+E', () => {})
+      expect(mockCreateShortcut).toHaveBeenCalledWith(expect.objectContaining({
+        shortcutKeys: 'A+R',
+      }))
     })
   })
 })
